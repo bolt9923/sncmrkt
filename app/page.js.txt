@@ -1,0 +1,15 @@
+// app/page.js - COMPLETE FIREBASE MARKETPLACE ✅
+
+import ProductsList from '@/components/ProductsList';
+
+export default function Home() {
+  return (
+    <>
+      <title>SNC Marketplace - Firebase Live 🔥</title>
+      <meta name="description" content="Live Firebase marketplace - Add, view, delete products instantly!" />
+      
+      {/* Complete Marketplace */}
+      <ProductsList />
+    </>
+  );
+}

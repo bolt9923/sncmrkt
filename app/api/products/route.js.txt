@@ -1,0 +1,81 @@
+// app/api/products/route.js - FIREBASE CONNECTED ✅
+
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
+
+// 🔥 YOUR FIREBASE CONFIG (PASTE KAR DIYA)
+const firebaseConfig = {
+  apiKey: "AIzaSyAOLYftL4t9gzu48sdrI5FLZ3HBRe__mlE",
+  authDomain: "sell-by-snc.firebaseapp.com",
+  projectId: "sell-by-snc",
+  storageBucket: "sell-by-snc.firebasestorage.app",
+  messagingSenderId: "716999623197",
+  appId: "1:716999623197:web:609e14d70561bfcda67cf4"
+};
+
+// Firebase initialize karo
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Products collection
+const productsCollection = collection(db, 'products');
+
+/* ===========================================
+           🔥 ALL API ENDPOINTS 🔥
+============================================= */
+
+// 1. GET - Sab products fetch karo
+export async function GET() {
+  try {
+    const snapshot = await getDocs(productsCollection);
+    const products = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    return Response.json(products);
+  } catch (error) {
+    console.error('GET products error:', error);
+    return Response.json({ error: 'Products load nahi hue' }, { status: 500 });
+  }
+}
+
+// 2. POST - Naya product add karo
+export async function POST(request) {
+  try {
+    const formData = await request.json();
+    
+    const newProduct = {
+      name: formData.name,
+      price: parseFloat(formData.price),
+      description: formData.description,
+      image: formData.image || '',
+      createdAt: new Date().toISOString()
+    };
+
+    // Firebase mein save karo
+    const docRef = await addDoc(productsCollection, newProduct);
+    
+    // Document with ID return karo
+    const docSnap = await getDocs(doc(db, 'products', docRef.id));
+    const product = { id: docRef.id, ...docSnap.docs[0].data() };
+    
+    return Response.json(product, { status: 201 });
+  } catch (error) {
+    console.error('POST product error:', error);
+    return Response.json(
+      { error: 'Product add nahi hua. Firebase error!' }, 
+      { status: 500 }
+    );
+  }
+}
+
+// 3. DELETE - Product delete karo (bonus)
+export async function DELETE(request) {
+  try {
+    const { id } = await request.json();
+    await deleteDoc(doc(db, 'products', id));
+    return Response.json({ success: true, message: 'Product delete ho gaya' });
+  } catch (error) {
+    return Response.json({ error: 'Delete nahi hua' }, { status: 500 });
+  }
+}
